@@ -1,13 +1,9 @@
 import { useState } from 'react';
-import { MessageCircle, Send, Mic, Bot } from 'lucide-react';
+import { MessageCircle, Send, Mic } from 'lucide-react';
 
-export function AIChat({ waitTimes, location }) {
+export function AIChat({ waitTimes }) {
   const [messages, setMessages] = useState([
-    { 
-      role: 'ai', 
-      text: "Hello! I'm your stadium assistant. Ask about wait times, directions, food, or parking!", 
-      avatar: '🤖'
-    }
+    { role: 'ai', text: "Hi! Ask about wait times or directions", avatar: '🤖' }
   ]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -15,190 +11,179 @@ export function AIChat({ waitTimes, location }) {
   const sendMessage = () => {
     if (!input.trim() || isTyping) return;
     
-    const userMsg = { role: 'user', text: input.trim(), avatar: '👤' };
+    const userMsg = { role: 'user', text: input.trim() };
     setMessages(prev => [...prev, userMsg]);
     setInput('');
     setIsTyping(true);
 
-    // Smart AI Responses
     setTimeout(() => {
-      let response = "";
-      
       const lowerInput = input.toLowerCase();
+      let response = "Food: " + waitTimes.food + "min | Restrooms: " + waitTimes.restroom + "min";
       
-      if (lowerInput.includes('food') || lowerInput.includes('hot dog') || lowerInput.includes('burger')) {
-        response = `🍔 Food at Gate 7: ${waitTimes.food}min wait. 180m from Section 112. Turn LEFT at concession stand.`;
-      } else if (lowerInput.includes('bathroom') || lowerInput.includes('restroom') || lowerInput.includes('toilet')) {
-        response = `🚻 Restrooms at Gate 3: ${waitTimes.restroom}min. Closest option - 90m straight ahead.`;
-      } else if (lowerInput.includes('beer') || lowerInput.includes('drink') || lowerInput.includes('concession')) {
-        response = `🍺 Beer at Section 12: ${waitTimes.concessions}min. Take elevator to Level 2 (220m).`;
-      } else if (lowerInput.includes('gate') || lowerInput.includes('entry') || lowerInput.includes('ticket')) {
-        response = `🚪 Entry Gate wait: ${waitTimes.entry}min. Use mobile ticket. Fastest: Gate 7.`;
-      } else if (lowerInput.includes('park') || lowerInput.includes('car')) {
-        response = `🚗 Parking Lot B: 5min walk. Follow green signs from Section 112. Valet available.`;
-      } else if (lowerInput.includes('seat') || lowerInput.includes('section')) {
-        response = `🎫 You're in Section 112. Seat map: Aisle 5. Half-time show at Center Court.`;
-      } else {
-        response = `I can help with navigation, wait times (${waitTimes.food}min food), seating, parking, or food recommendations! What do you need?`;
-      }
+      if (lowerInput.includes('food')) response = `🍔 Gate 7: ${waitTimes.food}min (180m)`;
+      if (lowerInput.includes('bathroom') || lowerInput.includes('restroom')) response = `🚻 Gate 3: ${waitTimes.restroom}min (90m)`;
+      if (lowerInput.includes('beer') || lowerInput.includes('drink')) response = `🍺 Section 12: ${waitTimes.concessions}min`;
       
       setMessages(prev => [...prev, { role: 'ai', text: response, avatar: '🤖' }]);
       setIsTyping(false);
-    }, 1200);
+      
+      // Keep only last 4 messages
+      if (messages.length > 6) {
+        setMessages(prev => prev.slice(-4));
+      }
+    }, 800);
   };
 
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter') sendMessage();
-  };
+  const handleKeyPress = (e) => e.key === 'Enter' && sendMessage();
 
   return (
-    <div className="ai-chat" style={{
+    <div style={{
       position: 'fixed',
-      bottom: '30px',
-      right: '30px',
-      width: '380px',
-      maxWidth: '90vw',
-      zIndex: 1000
+      bottom: '20px',
+      right: '20px',
+      width: '340px',
+      maxWidth: '85vw',
+      zIndex: 100,
+      height: '420px'  // ← FIXED HEIGHT
     }}>
       <div style={{
         background: 'rgba(255,255,255,0.95)',
-        backdropFilter: 'blur(30px)',
-        borderRadius: '28px',
-        boxShadow: '0 25px 60px rgba(0,0,0,0.3)',
+        backdropFilter: 'blur(25px)',
+        borderRadius: '20px',
+        boxShadow: '0 20px 40px rgba(0,0,0,0.25)',
         border: '1px solid rgba(255,255,255,0.3)',
+        height: '100%',
         overflow: 'hidden',
-        maxHeight: '500px'
+        display: 'flex',
+        flexDirection: 'column'
       }}>
-        {/* Header */}
+        {/* Compact Header */}
         <div style={{
           background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-          padding: '20px 24px',
+          padding: '16px 20px',
           display: 'flex',
           alignItems: 'center',
-          gap: '12px'
+          gap: '10px',
+          fontSize: '0.95rem'
         }}>
-          <Bot style={{width: '28px', height: '28px', color: 'white'}} />
-          <div style={{color: 'white', fontWeight: '700', fontSize: '1.1rem'}}>
-            AI Assistant
-          </div>
+          <MessageCircle style={{width: '20px', height: '20px', color: 'white'}} />
+          <span style={{color: 'white', fontWeight: '700'}}>AI Assistant</span>
         </div>
 
-        {/* Messages */}
+        {/* Compact Messages - Fixed Height */}
         <div style={{
-          height: '320px',
+          flex: 1,
           overflowY: 'auto',
-          padding: '24px',
-          background: 'rgba(248,250,252,0.7)'
+          padding: '16px',
+          background: '#f8fafc',
+          minHeight: '240px'
         }}>
-          {messages.map((msg, i) => (
+          {messages.slice(-4).map((msg, i) => (  // Show only last 4
             <div 
-              key={i} 
+              key={i}
               style={{
                 display: 'flex',
-                gap: '12px',
-                marginBottom: '20px',
-                justifyContent: msg.role === 'ai' ? 'flex-start' : 'flex-end'
+                gap: '8px',
+                marginBottom: '12px',
+                justifyContent: msg.role === 'ai' ? 'flex-start' : 'flex-end',
+                fontSize: '0.9rem'
               }}
             >
+              {msg.role === 'ai' && (
+                <div style={{
+                  width: '28px', height: '28px',
+                  borderRadius: '50%', 
+                  background: '#6366f1',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: '0.8rem', color: 'white', flexShrink: 0
+                }}>
+                  🤖
+                </div>
+              )}
               <div style={{
-                width: '40px',
-                height: '40px',
-                borderRadius: '50%',
-                background: msg.role === 'ai' ? '#6366f1' : '#3b82f6',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '1.1rem',
-                flexShrink: 0
-              }}>
-                {msg.avatar}
-              </div>
-              <div style={{
-                maxWidth: '280px',
-                padding: '16px 20px',
-                borderRadius: '22px',
-                background: msg.role === 'ai' ? 
-                  'linear-gradient(135deg, #f8fafc, #e2e8f0)' : 
-                  'linear-gradient(135deg, #3b82f6, #1d4ed8)',
-                color: msg.role === 'ai' ? '#1e293b' : 'white',
-                fontSize: '0.95rem',
-                lineHeight: '1.5',
-                boxShadow: msg.role === 'ai' ? 
-                  '0 4px 12px rgba(0,0,0,0.1)' : 
-                  '0 6px 20px rgba(59,130,246,0.4)',
-                wordBreak: 'break-word'
+                maxWidth: '220px',
+                padding: '10px 14px',
+                borderRadius: '16px',
+                background: msg.role === 'ai' ? '#e2e8f0' : 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                color: msg.role === 'ai' ? '#374151' : 'white',
+                lineHeight: '1.4',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
               }}>
                 {msg.text}
               </div>
+              {msg.role === 'user' && (
+                <div style={{
+                  width: '28px', height: '28px',
+                  borderRadius: '50%', 
+                  background: '#3b82f6',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  flexShrink: 0
+                }}>
+                  👤
+                </div>
+              )}
             </div>
           ))}
+          
           {isTyping && (
-            <div style={{display: 'flex', gap: '12px', justifyContent: 'flex-start'}}>
+            <div style={{display: 'flex', gap: '8px', justifyContent: 'flex-start', padding: '8px 0'}}>
               <div style={{
-                width: '40px', height: '40px',
+                width: '28px', height: '28px',
                 borderRadius: '50%', background: '#6366f1',
                 display: 'flex', alignItems: 'center', justifyContent: 'center'
               }}>
                 🤖
               </div>
               <div style={{
-                padding: '16px 20px', borderRadius: '22px',
-                background: 'linear-gradient(135deg, #f8fafc, #e2e8f0)',
-                color: '#64748b', fontSize: '0.95rem'
+                padding: '8px 12px', borderRadius: '16px',
+                background: '#e2e8f0', color: '#6b7280', fontSize: '0.9rem'
               }}>
-                <div style={{width: '60px', height: '4px', background: '#cbd5e1', borderRadius: '2px', animation: 'typing 1.5s infinite'}}>
-                  <div style={{width: '30px', height: '4px', background: '#6366f1', borderRadius: '2px'}}></div>
-                </div>
+                Typing...
               </div>
             </div>
           )}
         </div>
 
-        {/* Input */}
+        {/* Compact Input */}
         <div style={{
-          padding: '20px 24px',
-          borderTop: '1px solid rgba(0,0,0,0.1)',
-          background: 'rgba(255,255,255,0.5)'
+          padding: '16px 20px',
+          borderTop: '1px solid #e5e7eb',
+          background: 'white'
         }}>
           <div style={{
             display: 'flex',
-            gap: '12px',
             alignItems: 'center',
-            background: 'rgba(255,255,255,0.8)',
-            borderRadius: '25px',
-            padding: '12px 20px',
-            border: '2px solid rgba(0,0,0,0.1)'
+            gap: '10px',
+            background: '#f9fafb',
+            borderRadius: '20px',
+            padding: '10px 16px',
+            border: '2px solid #e5e7eb'
           }}>
-            <Mic style={{width: '20px', height: '20px', color: '#64748b', opacity: 0.6}} />
+            <Mic style={{width: '18px', height: '18px', color: '#9ca3af'}} />
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Ask about wait times, directions, food..."
+              placeholder="Type message..."
               style={{
                 flex: 1,
                 border: 'none',
                 outline: 'none',
-                fontSize: '0.95rem',
+                fontSize: '0.9rem',
                 background: 'transparent',
-                color: '#1e293b'
+                color: '#374151',
+                padding: '4px 0'
               }}
-              maxLength={200}
+              maxLength={100}
             />
             <Send 
-              style={{width: '22px', height: '22px', color: input ? '#6366f1' : '#cbd5e1', cursor: input ? 'pointer' : 'default'}}
+              style={{width: '20px', height: '20px', color: input ? '#6366f1' : '#d1d5db'}}
               onClick={sendMessage}
+              cursor={input ? 'pointer' : 'default'}
             />
           </div>
         </div>
       </div>
-
-      <style jsx>{`
-        @keyframes typing {
-          0%, 100% { transform: translateX(0); }
-          50% { transform: translateX(20px); }
-        }
-      `}</style>
     </div>
   );
 }
